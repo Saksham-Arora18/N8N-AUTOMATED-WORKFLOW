@@ -13,8 +13,6 @@ This n8n workflow automates code analysis at scale. It reads code from incoming 
 - **Add inline comments** (explaining logic, functions, edge cases)
 - **Merge results** and send everything back as a formatted email
 
-Perfect for **code reviews, documentation generation, learning Python/JS/etc., and onboarding new team members**.
-
 ---
 
 ## ✨ Key Features
@@ -23,7 +21,6 @@ Perfect for **code reviews, documentation generation, learning Python/JS/etc., a
 - 📧 **Email-triggered** — Send code via Gmail, get analysis back
 - 🔄 **Parallel execution** — Summarization and comments happen simultaneously
 - 🧠 **Smart analysis** — Groq's models understand code context and best practices
-- 🎯 **Mixed audience** — Works for individual developers, teams, and students
 - 🛠️ **Fully customizable** — Adjust prompts, models, and output format
 
 ---
@@ -33,14 +30,14 @@ Perfect for **code reviews, documentation generation, learning Python/JS/etc., a
 ### Workflow Steps
 
 1. **Get Trigger (Gmail)** — Listens for incoming emails with code attachments/content
-2. **Groq Chat Model (Summarization)** *(parallel)*— Summarizes the code in 2-3 sentences
+2. **Groq Chat Model (Summarization)** *(parallel)*— Summarizes the code 
 3. **Groq Chat Model (Comments)** *(parallel)* — Generates inline code comments
 4. **CODE_SUMMARY Node** — Extracts/formats summary output
 5. **COMMENTS_ADDITION Node** — Extracts/formats comments output
 6. **Merge** — Combines both results
 7. **Aggregate** — Consolidates data
 8. **Edit Fields** — Formats final output
-9. **Basic LLM Chain** — Final processing (optional polish)
+9. **Basic LLM Chain** — Final processing (Converting to HTML)
 10. **Send Message (Email)** — Returns formatted analysis back to user
 
 **Key architectural choice:** Steps 2 & 3 run in parallel for speed.
