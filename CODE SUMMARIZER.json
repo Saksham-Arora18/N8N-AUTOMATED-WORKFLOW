@@ -1,0 +1,488 @@
+{
+  "name": "CODE SUMMARIZER",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "###STEPS\n\n1.READ THR CODE RELATED EMAIL\n2.SUMMARIZING CODE USING LLM\n3.GENERATE COMMENTS FOR CODE \n4.STEP 2 and 3 TO BE DONE IN PARALLEL.\n5.MERGING OUTPUTS OF STEP 2 and 3\n6.SENDING OUTPUT AS MAIL\n",
+        "height": 336
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -560,
+        -192
+      ],
+      "typeVersion": 1,
+      "id": "f9a1b67e-be86-4d55-9645-03f8b712eca3",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "simple": false,
+        "filters": {
+          "sender": "saksham0666@gmail.com"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -240,
+        304
+      ],
+      "id": "38885d4d-8cfe-4bae-8539-7192ab41df93",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "GhgFjrOq6XmP5ZEz",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "meta-llama/llama-4-scout-17b-16e-instruct",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        64,
+        224
+      ],
+      "id": "4caef870-b148-49a9-a9ff-4bacb8239221",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "WaMRpuUxFfDHrJWF",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=GIVEN THE CODE BELOW \nCODE:\n{{ $json.text }}\n\n\nGENERATE COMMENTS FOR THE CODE SO I CAN UNDERSTAND WHAT EACH LINE OF CODE DOES \n\nNOTE:DO NOT MODIFY ANY LINE IN CODE .JUST ADD COMMENTS \n\n",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "YOU ARE A HELPFUL ASSISTANT AND KNOW HOW TO WRITE A CODE IN PYTHON.HELO ME TO UNDERSTAND CODE BY ADDING COMMENTS TO IT "
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        -16,
+        0
+      ],
+      "id": "398067e6-3e9a-4fb1-b81e-d3f21d878bfb",
+      "name": "COMMENTS_ADDITION_NODE"
+    },
+    {
+      "parameters": {
+        "model": "meta-llama/llama-4-scout-17b-16e-instruct",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        64,
+        736
+      ],
+      "id": "c97d2fc6-76f9-4e6e-8cd0-6e36e28e6d06",
+      "name": "Groq Chat Model1",
+      "credentials": {
+        "groqApi": {
+          "id": "WaMRpuUxFfDHrJWF",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=GIVEN THE CODE BELOW \nCODE:\n{{ $json.text }}\nGENERATE A SUMMARY OF WHAT CODE DOES IN VERY SIMPLE LANGUAGE .NOTE THAT SUMMARY CONTAIN ALL IMPORTANT DETAILS THERE ARE IN CODE SO THAT I KNOW WHAT COE IS ABOUT WITH QUICK GLANCE",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "YOU ARE EXPERT IN PYTHON CODE.YOU HAVE TO SUMMARIZE CODE IN SIMPLE LANGUAGE AND HAVE TO COVERY EVERY IMPORTANT DETAILS"
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        -16,
+        512
+      ],
+      "id": "de26faf3-14d0-4942-b904-fa14575572e2",
+      "name": "CODE_SUMMARY"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        336,
+        304
+      ],
+      "id": "3dc2368d-8dee-457e-9bec-5f6bd9f878e2",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "text"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        560,
+        304
+      ],
+      "id": "6dbc4b8c-9510-4f49-a677-73d681482ff0",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "sendTo": "saksham0666@gmail.com",
+        "subject": "CODE SUMMARY AND COMMENTS ",
+        "emailType": "text",
+        "message": "=CODE WITH COMMENTS :\n\n{{ $json.text[0] }}\n\nCODE WITH SUMMARY :\n\n{{ $json.text[1] }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        -240,
+        -224
+      ],
+      "id": "7bde5257-8955-43d7-aa90-517b91920ebe",
+      "name": "Send a message",
+      "webhookId": "e8276946-6322-4425-8713-e41055343ab8",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "GhgFjrOq6XmP5ZEz",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d5378fa8-627b-4aa9-8e47-156855b34a14",
+              "name": "Message",
+              "value": "=CODE WITH COMMENTS:\n{{ $json.text[0] }}\n\nCODE SUMMARY:\n{{ $json.text[1] }}\n",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        784,
+        304
+      ],
+      "id": "6eb4291a-4c6d-476f-b9cb-46b5261945c9",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=CONVERT THE MESSAGE INTO HTML FORMAT.\nINCLUDE PROPER CODE BLOCKS WHENEVER NECESSARY.THE CODE BLOCKS SHOULD HAVE SYNTAX HIGHLIGHTING FOR SPECIFIC LANGUAGE USE IN CODE \nMESSAGE:\n{{ $json.Message }}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "YOU CAN ANY MESSGAE TO HTML FORMAT"
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        1008,
+        304
+      ],
+      "id": "e99a12a9-c9ec-4161-929d-209f7fec1a79",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "model": "meta-llama/llama-4-scout-17b-16e-instruct",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        992,
+        528
+      ],
+      "id": "35e1ad80-fa3d-498b-bf4f-170803e4a116",
+      "name": "Groq Chat Model2",
+      "credentials": {
+        "groqApi": {
+          "id": "WaMRpuUxFfDHrJWF",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "saksham0666@gmail.com",
+        "subject": "CODE SUMMARY AND COMMENTS ",
+        "message": "={{ $json.text }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1360,
+        304
+      ],
+      "id": "f85758f8-eef4-4e73-8e56-dc5c832812fb",
+      "name": "Send a message1",
+      "webhookId": "ad8268b1-9a3d-4c09-84e5-96338703874e",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "GhgFjrOq6XmP5ZEz",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "COMMENTS_ADDITION_NODE": [
+      {
+        "json": {
+          "text": "Here is the code with comments:\n\n```python\n# Define a function named factorial that takes one argument n\ndef factorial(n):\n  # Check if the input number n is less than 0\n  if n < 0:\n    # If n is negative, return an error message because factorial is not defined for negative numbers\n    return \"Factorial does not exist for negative numbers.\"\n  # Initialize a variable result to 1, which will be used to store the factorial result\n  result = 1\n  # Use a for loop to iterate from 1 to n (inclusive)\n  for i in range(1, n + 1):\n    # In each iteration, multiply the result by the current number i\n    result *= i\n  # After the loop finishes, return the calculated factorial result\n  return result\n  # Print the factorial of 5 by calling the factorial function with argument 5\n  print(factorial(5))\n```\n\nHowever, note that the last line `print(factorial(5))` is indented under the function definition which is incorrect in Python. It should be outside the function definition. Here is the corrected code:\n\n```python\n# Define a function named factorial that takes one argument n\ndef factorial(n):\n  # Check if the input number n is less than 0\n  if n < 0:\n    # If n is negative, return an error message because factorial is not defined for negative numbers\n    return \"Factorial does not exist for negative numbers.\"\n  # Initialize a variable result to 1, which will be used to store the factorial result\n  result = 1\n  # Use a for loop to iterate from 1 to n (inclusive)\n  for i in range(1, n + 1):\n    # In each iteration, multiply the result by the current number i\n    result *= i\n  # After the loop finishes, return the calculated factorial result\n  return result\n# Print the factorial of 5 by calling the factorial function with argument 5\nprint(factorial(5))\n```"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ],
+    "CODE_SUMMARY": [
+      {
+        "json": {
+          "text": "Here's a summary of what the code does in simple language:\n\n**This code calculates the factorial of a given number.**\n\n**Here's what it does:**\n\n1. **It takes a number as input**: The code defines a function called `factorial` that takes one number `n` as input.\n2. **Checks if the number is negative**: If the input number `n` is less than 0, it returns an error message: \"Factorial does not exist for negative numbers.\"\n3. **Calculates the factorial**: If the number is not negative, it calculates the factorial by multiplying all numbers from 1 to `n` together.\n4. **Returns the result**: The calculated factorial is returned as the output.\n5. **Tests the function**: The code also tests the function with the input `5` and prints the result.\n\n**In simple terms, the code:**\n\n* Takes a number\n* Checks if it's negative (if so, returns an error)\n* Calculates the factorial (1 x 2 x 3 x ... x n)\n* Returns the result\n* Tests the function with the number 5 and prints the answer.\n\nWith this summary, you should be able to quickly understand what the code is about and what it does!"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ],
+    "Merge": [
+      {
+        "json": {
+          "text": "Here is the code with comments:\n\n```python\n# Define a function named factorial that takes one argument n\ndef factorial(n):\n  # Check if the input number n is less than 0\n  if n < 0:\n    # If n is negative, return an error message because factorial is not defined for negative numbers\n    return \"Factorial does not exist for negative numbers.\"\n  # Initialize a variable result to 1, which will be used to store the factorial result\n  result = 1\n  # Use a for loop to iterate from 1 to n (inclusive)\n  for i in range(1, n + 1):\n    # In each iteration, multiply the result by the current number i\n    result *= i\n  # After the loop finishes, return the calculated factorial result\n  return result\n  # Print the factorial of 5 by calling the factorial function with argument 5\n  print(factorial(5))\n```\n\nHowever, note that the last line `print(factorial(5))` is indented under the function definition which is incorrect in Python. It should be outside the function definition. Here is the corrected code:\n\n```python\n# Define a function named factorial that takes one argument n\ndef factorial(n):\n  # Check if the input number n is less than 0\n  if n < 0:\n    # If n is negative, return an error message because factorial is not defined for negative numbers\n    return \"Factorial does not exist for negative numbers.\"\n  # Initialize a variable result to 1, which will be used to store the factorial result\n  result = 1\n  # Use a for loop to iterate from 1 to n (inclusive)\n  for i in range(1, n + 1):\n    # In each iteration, multiply the result by the current number i\n    result *= i\n  # After the loop finishes, return the calculated factorial result\n  return result\n# Print the factorial of 5 by calling the factorial function with argument 5\nprint(factorial(5))\n```"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      },
+      {
+        "json": {
+          "text": "Here's a summary of what the code does in simple language:\n\n**This code calculates the factorial of a given number.**\n\n**Here's what it does:**\n\n1. **It takes a number as input**: The code defines a function called `factorial` that takes one number `n` as input.\n2. **Checks if the number is negative**: If the input number `n` is less than 0, it returns an error message: \"Factorial does not exist for negative numbers.\"\n3. **Calculates the factorial**: If the number is not negative, it calculates the factorial by multiplying all numbers from 1 to `n` together.\n4. **Returns the result**: The calculated factorial is returned as the output.\n5. **Tests the function**: The code also tests the function with the input `5` and prints the result.\n\n**In simple terms, the code:**\n\n* Takes a number\n* Checks if it's negative (if so, returns an error)\n* Calculates the factorial (1 x 2 x 3 x ... x n)\n* Returns the result\n* Tests the function with the number 5 and prints the answer.\n\nWith this summary, you should be able to quickly understand what the code is about and what it does!"
+        },
+        "pairedItem": {
+          "item": 0,
+          "input": 1
+        }
+      }
+    ],
+    "Aggregate": [
+      {
+        "json": {
+          "text": [
+            "Here is the code with comments:\n\n```python\n# Define a function named factorial that takes one argument n\ndef factorial(n):\n  # Check if the input number n is less than 0\n  if n < 0:\n    # If n is negative, return an error message because factorial is not defined for negative numbers\n    return \"Factorial does not exist for negative numbers.\"\n  # Initialize a variable result to 1, which will be used to store the factorial result\n  result = 1\n  # Use a for loop to iterate from 1 to n (inclusive)\n  for i in range(1, n + 1):\n    # In each iteration, multiply the result by the current number i\n    result *= i\n  # After the loop finishes, return the calculated factorial result\n  return result\n  # Print the factorial of 5 by calling the factorial function with argument 5\n  print(factorial(5))\n```\n\nHowever, note that the last line `print(factorial(5))` is indented under the function definition which is incorrect in Python. It should be outside the function definition. Here is the corrected code:\n\n```python\n# Define a function named factorial that takes one argument n\ndef factorial(n):\n  # Check if the input number n is less than 0\n  if n < 0:\n    # If n is negative, return an error message because factorial is not defined for negative numbers\n    return \"Factorial does not exist for negative numbers.\"\n  # Initialize a variable result to 1, which will be used to store the factorial result\n  result = 1\n  # Use a for loop to iterate from 1 to n (inclusive)\n  for i in range(1, n + 1):\n    # In each iteration, multiply the result by the current number i\n    result *= i\n  # After the loop finishes, return the calculated factorial result\n  return result\n# Print the factorial of 5 by calling the factorial function with argument 5\nprint(factorial(5))\n```",
+            "Here's a summary of what the code does in simple language:\n\n**This code calculates the factorial of a given number.**\n\n**Here's what it does:**\n\n1. **It takes a number as input**: The code defines a function called `factorial` that takes one number `n` as input.\n2. **Checks if the number is negative**: If the input number `n` is less than 0, it returns an error message: \"Factorial does not exist for negative numbers.\"\n3. **Calculates the factorial**: If the number is not negative, it calculates the factorial by multiplying all numbers from 1 to `n` together.\n4. **Returns the result**: The calculated factorial is returned as the output.\n5. **Tests the function**: The code also tests the function with the input `5` and prints the result.\n\n**In simple terms, the code:**\n\n* Takes a number\n* Checks if it's negative (if so, returns an error)\n* Calculates the factorial (1 x 2 x 3 x ... x n)\n* Returns the result\n* Tests the function with the number 5 and prints the answer.\n\nWith this summary, you should be able to quickly understand what the code is about and what it does!"
+          ]
+        },
+        "pairedItem": [
+          {
+            "item": 0
+          },
+          {
+            "item": 1
+          }
+        ]
+      }
+    ],
+    "Edit Fields": [
+      {
+        "json": {
+          "Message": "CODE WITH COMMENTS:\nHere is the code with comments:\n\n```python\n# Define a function named factorial that takes one argument n\ndef factorial(n):\n  # Check if the input number n is less than 0\n  if n < 0:\n    # If n is negative, return an error message because factorial is not defined for negative numbers\n    return \"Factorial does not exist for negative numbers.\"\n  # Initialize a variable result to 1, which will be used to store the factorial result\n  result = 1\n  # Use a for loop to iterate from 1 to n (inclusive)\n  for i in range(1, n + 1):\n    # In each iteration, multiply the result by the current number i\n    result *= i\n  # After the loop finishes, return the calculated factorial result\n  return result\n  # Print the factorial of 5 by calling the factorial function with argument 5\n  print(factorial(5))\n```\n\nHowever, note that the last line `print(factorial(5))` is indented under the function definition which is incorrect in Python. It should be outside the function definition. Here is the corrected code:\n\n```python\n# Define a function named factorial that takes one argument n\ndef factorial(n):\n  # Check if the input number n is less than 0\n  if n < 0:\n    # If n is negative, return an error message because factorial is not defined for negative numbers\n    return \"Factorial does not exist for negative numbers.\"\n  # Initialize a variable result to 1, which will be used to store the factorial result\n  result = 1\n  # Use a for loop to iterate from 1 to n (inclusive)\n  for i in range(1, n + 1):\n    # In each iteration, multiply the result by the current number i\n    result *= i\n  # After the loop finishes, return the calculated factorial result\n  return result\n# Print the factorial of 5 by calling the factorial function with argument 5\nprint(factorial(5))\n```\n\nCODE SUMMARY:\nHere's a summary of what the code does in simple language:\n\n**This code calculates the factorial of a given number.**\n\n**Here's what it does:**\n\n1. **It takes a number as input**: The code defines a function called `factorial` that takes one number `n` as input.\n2. **Checks if the number is negative**: If the input number `n` is less than 0, it returns an error message: \"Factorial does not exist for negative numbers.\"\n3. **Calculates the factorial**: If the number is not negative, it calculates the factorial by multiplying all numbers from 1 to `n` together.\n4. **Returns the result**: The calculated factorial is returned as the output.\n5. **Tests the function**: The code also tests the function with the input `5` and prints the result.\n\n**In simple terms, the code:**\n\n* Takes a number\n* Checks if it's negative (if so, returns an error)\n* Calculates the factorial (1 x 2 x 3 x ... x n)\n* Returns the result\n* Tests the function with the number 5 and prints the answer.\n\nWith this summary, you should be able to quickly understand what the code is about and what it does!\n"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ],
+    "Basic LLM Chain": [
+      {
+        "json": {
+          "text": "<h1>CONVERTED MESSAGE IN HTML FORMAT</h1>\n\n<h2>CODE WITH COMMENTS:</h2>\n\n<pre><code class=\"python\">\n# Define a function named factorial that takes one argument n\ndef factorial(n):\n  # Check if the input number n is less than 0\n  if n < 0:\n    # If n is negative, return an error message because factorial is not defined for negative numbers\n    return \"Factorial does not exist for negative numbers.\"\n  # Initialize a variable result to 1, which will be used to store the factorial result\n  result = 1\n  # Use a for loop to iterate from 1 to n (inclusive)\n  for i in range(1, n + 1):\n    # In each iteration, multiply the result by the current number i\n    result *= i\n  # After the loop finishes, return the calculated factorial result\n  return result\n  # Print the factorial of 5 by calling the factorial function with argument 5\n  print(factorial(5))\n</code></pre>\n\n<p>However, note that the last line <code>print(factorial(5))</code> is indented under the function definition which is incorrect in Python. It should be outside the function definition. Here is the corrected code:</p>\n\n<pre><code class=\"python\">\n# Define a function named factorial that takes one argument n\ndef factorial(n):\n  # Check if the input number n is less than 0\n  if n < 0:\n    # If n is negative, return an error message because factorial is not defined for negative numbers\n    return \"Factorial does not exist for negative numbers.\"\n  # Initialize a variable result to 1, which will be used to store the factorial result\n  result = 1\n  # Use a for loop to iterate from 1 to n (inclusive)\n  for i in range(1, n + 1):\n    # In each iteration, multiply the result by the current number i\n    result *= i\n  # After the loop finishes, return the calculated factorial result\n  return result\n# Print the factorial of 5 by calling the factorial function with argument 5\nprint(factorial(5))\n</code></pre>\n\n<h2>CODE SUMMARY:</h2>\n\n<p>Here's a summary of what the code does in simple language:</p>\n\n<h3>This code calculates the factorial of a given number.</h3>\n\n<h4>Here's what it does:</h4>\n\n<ol>\n  <li><strong>It takes a number as input</strong>: The code defines a function called <code>factorial</code> that takes one number <code>n</code> as input.</li>\n  <li><strong>Checks if the number is negative</strong>: If the input number <code>n</code> is less than 0, it returns an error message: \"Factorial does not exist for negative numbers.\"</li>\n  <li><strong>Calculates the factorial</strong>: If the number is not negative, it calculates the factorial by multiplying all numbers from 1 to <code>n</code> together.</li>\n  <li><strong>Returns the result</strong>: The calculated factorial is returned as the output.</li>\n  <li><strong>Tests the function</strong>: The code also tests the function with the input <code>5</code> and prints the result.</li>\n</ol>\n\n<h4>In simple terms, the code:</h4>\n\n<ul>\n  <li>Takes a number</li>\n  <li>Checks if it's negative (if so, returns an error)</li>\n  <li>Calculates the factorial (1 x 2 x 3 x ... x n)</li>\n  <li>Returns the result</li>\n  <li>Tests the function with the number 5 and prints the answer.</li>\n</ul>\n\n<p>With this summary, you should be able to quickly understand what the code is about and what it does!</p>"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "COMMENTS_ADDITION_NODE",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "CODE_SUMMARY",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "COMMENTS_ADDITION_NODE",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "COMMENTS_ADDITION_NODE": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "CODE_SUMMARY",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CODE_SUMMARY": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Send a message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "58009587-b0d6-43b6-a2d5-06e323f4540a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "de8075081911bb46d9eecb6f84b39da98c1268ce1dd763f62e029a3bb04c38aa"
+  },
+  "nodeGroups": [],
+  "id": "dqDFW4z7pWLqEGSk",
+  "tags": []
+}
